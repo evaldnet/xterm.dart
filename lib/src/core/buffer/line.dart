@@ -7,7 +7,9 @@ import 'package:xterm/src/core/cursor.dart';
 import 'package:xterm/src/utils/circular_buffer.dart';
 import 'package:xterm/src/utils/unicode_v11.dart';
 
-const _cellSize = 4;
+// Local xterm.dart fork: a 5th per-cell slot holds an OSC-8 hyperlink id (0 = none). It rides along
+// through the bulk copy/move/resize ops (all scaled by _cellSize) automatically.
+const _cellSize = 5;
 
 const _cellForeground = 0;
 
@@ -16,6 +18,8 @@ const _cellBackground = 1;
 const _cellAttributes = 2;
 
 const _cellContent = 3;
+
+const _cellHyperlink = 4;
 
 class BufferLine with IndexedItem {
   BufferLine(
@@ -61,12 +65,22 @@ class BufferLine with IndexedItem {
     return _data[index * _cellSize + _cellContent] >> CellContent.widthShift;
   }
 
+  /// OSC-8 hyperlink id at [index] (0 = none). Local xterm.dart fork.
+  int getHyperlink(int index) {
+    return _data[index * _cellSize + _cellHyperlink];
+  }
+
+  void setHyperlink(int index, int value) {
+    _data[index * _cellSize + _cellHyperlink] = value;
+  }
+
   void getCellData(int index, CellData cellData) {
     final offset = index * _cellSize;
     cellData.foreground = _data[offset + _cellForeground];
     cellData.background = _data[offset + _cellBackground];
     cellData.flags = _data[offset + _cellAttributes];
     cellData.content = _data[offset + _cellContent];
+    cellData.hyperlink = _data[offset + _cellHyperlink];
   }
 
   CellData createCellData(int index) {
@@ -76,6 +90,7 @@ class BufferLine with IndexedItem {
     _data[offset + _cellBackground] = cellData.background;
     _data[offset + _cellAttributes] = cellData.flags;
     _data[offset + _cellContent] = cellData.content;
+    _data[offset + _cellHyperlink] = cellData.hyperlink;
     return cellData;
   }
 
@@ -106,6 +121,7 @@ class BufferLine with IndexedItem {
     _data[offset + _cellBackground] = style.background;
     _data[offset + _cellAttributes] = style.attrs;
     _data[offset + _cellContent] = char | (witdh << CellContent.widthShift);
+    _data[offset + _cellHyperlink] = style.hyperlink;
   }
 
   void setCellData(int index, CellData cellData) {
@@ -114,6 +130,7 @@ class BufferLine with IndexedItem {
     _data[offset + _cellBackground] = cellData.background;
     _data[offset + _cellAttributes] = cellData.flags;
     _data[offset + _cellContent] = cellData.content;
+    _data[offset + _cellHyperlink] = cellData.hyperlink;
   }
 
   void eraseCell(int index, CursorStyle style) {
@@ -122,6 +139,7 @@ class BufferLine with IndexedItem {
     _data[offset + _cellBackground] = style.background;
     _data[offset + _cellAttributes] = style.attrs;
     _data[offset + _cellContent] = 0;
+    _data[offset + _cellHyperlink] = 0;
   }
 
   void resetCell(int index) {
@@ -130,6 +148,7 @@ class BufferLine with IndexedItem {
     _data[offset + _cellBackground] = 0;
     _data[offset + _cellAttributes] = 0;
     _data[offset + _cellContent] = 0;
+    _data[offset + _cellHyperlink] = 0;
   }
 
   /// Erase cells whose index satisfies [start] <= index < [end]. Erased cells

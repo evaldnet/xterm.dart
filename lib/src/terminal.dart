@@ -119,6 +119,13 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
 
   final _cursorStyle = CursorStyle();
 
+  // OSC-8 hyperlink table (local fork): 1-based ids stamped onto cells; deduped by URI.
+  final _hyperlinks = <String>[];
+  final _hyperlinkIds = <String, int>{};
+
+  /// Resolve an OSC-8 hyperlink id (from `BufferLine.getHyperlink`) to its URI, or null. Fork.
+  String? hyperlink(int id) => (id > 0 && id <= _hyperlinks.length) ? _hyperlinks[id - 1] : null;
+
   bool _insertMode = false;
 
   bool _lineFeedMode = false;
@@ -897,6 +904,18 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
   @override
   void setIconName(String name) {
     onIconChange?.call(name);
+  }
+
+  @override
+  void setHyperlink(String? uri) {
+    if (uri == null) {
+      _cursorStyle.hyperlink = 0;
+    } else {
+      _cursorStyle.hyperlink = _hyperlinkIds.putIfAbsent(uri, () {
+        _hyperlinks.add(uri);
+        return _hyperlinks.length; // 1-based id
+      });
+    }
   }
 
   @override

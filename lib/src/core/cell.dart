@@ -6,6 +6,7 @@ class CellData {
     required this.background,
     required this.flags,
     required this.content,
+    this.hyperlink = 0,
   });
 
   factory CellData.empty() {
@@ -24,6 +25,9 @@ class CellData {
   int flags;
 
   int content;
+
+  /// OSC-8 hyperlink id (0 = none); resolve via `Terminal.hyperlink(id)`. Local xterm.dart fork.
+  int hyperlink;
 
   int getHash() {
     return hashValues(foreground, background, flags, content);

@@ -211,5 +211,9 @@ abstract class EscapeHandler {
 
   void setIconName(String name);
 
+  /// OSC-8 hyperlink: [uri] non-null opens a link (following cells belong to it), null closes it.
+  /// Local xterm.dart fork.
+  void setHyperlink(String? uri);
+
   void unknownOSC(String code, List<String> args);
 }

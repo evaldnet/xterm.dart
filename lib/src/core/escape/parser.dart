@@ -1072,6 +1072,11 @@ class EscapeParser {
         case '2':
           handler.setTitle(pt);
           return true;
+        case '8':
+          // OSC 8 ; params ; URI  (empty URI closes the link). Rejoin in case the URI had ';'.
+          final uri = _osc.length > 2 ? _osc.sublist(2).join(';') : '';
+          handler.setHyperlink(uri.isEmpty ? null : uri);
+          return true;
       }
     }
 

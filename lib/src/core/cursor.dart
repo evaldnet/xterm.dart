@@ -7,7 +7,10 @@ class CursorStyle {
 
   int attrs;
 
-  CursorStyle({this.foreground = 0, this.background = 0, this.attrs = 0});
+  /// Current OSC-8 hyperlink id (0 = none), stamped onto written cells. Local xterm.dart fork.
+  int hyperlink;
+
+  CursorStyle({this.foreground = 0, this.background = 0, this.attrs = 0, this.hyperlink = 0});
 
   static final empty = CursorStyle();
 
@@ -125,6 +128,7 @@ class CursorStyle {
     foreground = 0;
     background = 0;
     attrs = 0;
+    hyperlink = 0;
   }
 }
 
